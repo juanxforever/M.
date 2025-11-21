@@ -9,7 +9,7 @@
 /* TUS ESTILOS ORIGINALES COMPLETOS */
 @media (orientation: portrait){
   body::before{
-    content:"GIRA EL MVIL";
+    content:"GIRA EL MÓVIL";
     position:fixed; inset:0; background:#000; color:#fff; z-index:9999;
     display:flex; align-items:center; justify-content:center; font-size:10vw;
   }
@@ -327,29 +327,29 @@ button:disabled{
 
 <div id="progress"><div id="bar"></div></div>
 <div id="bottom">
-  <button id="prev"></button>
-  <button id="play"></button>
-  <button id="next"></button>
-  <button id="toggleMute"></button>
-  <button id="fullscreen"></button>
+  <button id="prev">⏮</button>
+  <button id="play">▶</button>
+  <button id="next">⏭</button>
+  <button id="toggleMute">🔇</button>
+  <button id="fullscreen">⛶</button>
 </div>
 <div id="safeDrive">
   <input type="checkbox" id="driving">
   <label for="driving">Conduciendo (solo audio)</label>
 </div>
 
-<!-- SOLO CONTROLES - EL VIDEO SE MUEVE AQU EN FULLSCREEN -->
+<!-- SOLO CONTROLES - EL VIDEO SE MUEVE AQUÍ EN FULLSCREEN -->
 <div id="fullscreen-container">
   <div id="fullscreen-controls">
-    <button id="fs-prev"></button>
-    <button id="fs-play"></button>
-    <button id="fs-next"></button>
-    <button id="fs-mute"></button>
+    <button id="fs-prev">⏮</button>
+    <button id="fs-play">▶</button>
+    <button id="fs-next">⏭</button>
+    <button id="fs-mute">🔇</button>
     <button id="fs-exit">Salir</button>
   </div>
 </div>
 
-<div id="loading">Cargando msica...</div>
+<div id="loading">Cargando música...</div>
 
 <script>
 // SISTEMA DE CACHE MEJORADO
@@ -404,15 +404,15 @@ let isSwitching = false;
 // LISTA DE CANCIONES OPTIMIZADA
 const GENRE_FOLDERS = {
   'Latinoamericana': [{ name: 'Latinoamericana', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Aya.c/refs/heads/main/jsskkkk.json' }],
-  '': [{ name: '', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Jp.n/refs/heads/main/jpn.json' }],
+  'おんがく': [{ name: '音楽', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Jp.n/refs/heads/main/jpn.json' }],
   'Baladas': [{ name: 'Baladas de ayer y Hoy', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Bl./refs/heads/main/bsss.json' }],
   'Folclore': [{ name: 'Ayllus', url: 'https://archive.org/download/xd_20251013/jssk.json' }],
   'Pop': [{ name: 'Divas', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Dip.o.p/refs/heads/main/jsskk.json' }],
-  'Grupero': [{ name: 'Cumbias sureas', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Grp/refs/heads/main/jsskkk.json' }],
-  'Rock en Espaol': [{ name: 'Clsicos del Rock', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/rr/refs/heads/main/rc.json' }],
+  'Grupero': [{ name: 'Cumbias sureñas', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Grp/refs/heads/main/jsskkk.json' }],
+  'Rock en Español': [{ name: 'Clásicos del Rock', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/rr/refs/heads/main/rc.json' }],
   'Bachata': [{ name: 'Bachata', url: 'https://archive.org/download/vvvvvvvx/Bchvvc.json' }],
-  'tecno': [{ name: 'Electrnica Teckno ', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Tcno/refs/heads/main/TcElec.json' }],
-  'Salsa': [{ name: 'Clsica y de oro', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Ccc/refs/heads/main/Sssss.json' }],
+  'tecno': [{ name: 'Electrónica Teckno ', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Tcno/refs/heads/main/TcElec.json' }],
+  'Salsa': [{ name: 'Clásica y de oro', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Ccc/refs/heads/main/Sssss.json' }],
   'Boleros': [{ name: 'Cantineros', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Bo../refs/heads/main/Bol..json' }],
   'Rock en Ingles': [{ name: '80s-90s', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Ringles/refs/heads/main/Ringles.json' }],
   'cumbias': [{ name: 'Cumbias de ayer y hoy', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/q./refs/heads/main/q...json' }],
@@ -420,10 +420,10 @@ const GENRE_FOLDERS = {
   'Disco': [{ name: 'Italo disco', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Dic..c/refs/heads/main/Idisco.json' }],
   'huaynos': [{ name: 'huaynos', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Hyns/refs/heads/main/hyn.json' }],
   'wwe': [{ name: 'Vintage (ingles)', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/w.3/refs/heads/main/w.w3.json' }],
-  'Reguetn': [{ name: 'Clasicos del Regueton', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Rgmp/refs/heads/main/rgtnnns.json' }]
+  'Reguetón': [{ name: 'Clasicos del Regueton', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Rgmp/refs/heads/main/rgtnnns.json' }]
 };
 
-// SOLUCIN: CARGA INSTANTNEA SIN PARPADEO
+// SOLUCIÓN: CARGA INSTANTÁNEA SIN PARPADEO
 function loadTrack(i, t = 0) {
     if (isSwitching || i === idx) return;
     
@@ -440,7 +440,7 @@ function loadTrack(i, t = 0) {
     const wasPlaying = !vP.paused;
     const currentTime = vP.currentTime;
     
-    // CAMBIO INSTANTNEO - SIN RECARGAR EL VIDEO
+    // CAMBIO INSTANTÁNEO - SIN RECARGAR EL VIDEO
     vP.src = item.video;
     
     // REPRODUCIR INMEDIATAMENTE
@@ -449,7 +449,7 @@ function loadTrack(i, t = 0) {
     const playPromise = vP.play();
     if (playPromise !== undefined) {
         playPromise.catch(e => {
-            console.log('Autoplay bloqueado, esperando interaccin');
+            console.log('Autoplay bloqueado, esperando interacción');
             isSwitching = false;
         });
     }
@@ -458,13 +458,13 @@ function loadTrack(i, t = 0) {
     renderList();
     localStorage.setItem('carIdx', idx);
     
-    // RESETEAR FLAG DESPUS DE PEQUEO RETRASO
+    // RESETEAR FLAG DESPUÉS DE PEQUEÑO RETRASO
     setTimeout(() => {
         isSwitching = false;
     }, 100);
 }
 
-// FUNCIONES BSICAS OPTIMIZADAS
+// FUNCIONES BÁSICAS OPTIMIZADAS
 function nextTrack() {
     loadTrack((idx + 1) % FILTERED_PLAYLIST.length);
 }
@@ -499,7 +499,7 @@ function renderList() {
             <img src="${tr.thumb}" onerror="this.src='https://picsum.photos/320/180?random=${i}'">
             <div class="track-info">
                 <div class="track-title">${tr.title}</div>
-                <div class="track-genre">${tr.genre}  ${tr.folder}</div>
+                <div class="track-genre">${tr.genre} • ${tr.folder}</div>
             </div>
         `;
         d.onclick = () => loadTrack(i);
@@ -595,13 +595,13 @@ function toggleMute() {
 function updateMuteButton() {
     const muteBtn = document.getElementById('toggleMute');
     const fsMuteBtn = document.getElementById('fs-mute');
-    muteBtn.textContent = isMuted ? '' : '';
-    if (fsMuteBtn) fsMuteBtn.textContent = isMuted ? '' : '';
+    muteBtn.textContent = isMuted ? '🔇' : '🔊';
+    if (fsMuteBtn) fsMuteBtn.textContent = isMuted ? '🔇' : '🔊';
 }
 
 function updateFullscreenControls() {
     const fsPlayBtn = document.getElementById('fs-play');
-    if (fsPlayBtn) fsPlayBtn.textContent = vP.paused ? '' : '';
+    if (fsPlayBtn) fsPlayBtn.textContent = vP.paused ? '▶' : '◼️';
 }
 
 function updateProgressBar() {
@@ -626,7 +626,7 @@ function showControlsTemporarily() {
     }
 }
 
-// DETECCIN DE CAMBIOS DE FULLSCREEN
+// DETECCIÓN DE CAMBIOS DE FULLSCREEN
 document.addEventListener('fullscreenchange', handleFullscreenChange);
 document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
@@ -646,7 +646,7 @@ async function parseJSON(content, genre, folderName) {
     try {
         const data = JSON.parse(content);
         return data.map((item, index) => ({
-            title: item.nombre || item.name || item.title || item.titulo || (typeof item === 'string' ? item : `Cancin ${index + 1}`),
+            title: item.nombre || item.name || item.title || item.titulo || (typeof item === 'string' ? item : `Canción ${index + 1}`),
             video: item.url || item.video || item.src || '',
             thumb: item.thumb || item.thumbnail || item.image || `https://picsum.photos/320/180?random=${Math.random()}`,
             genre,
@@ -707,7 +707,7 @@ async function loadAllMusic() {
     }
 }
 
-// INICIALIZACIN
+// INICIALIZACIÓN
 function init() {
     createGenreFilters();
     filterByGenre('all');
@@ -715,11 +715,11 @@ function init() {
     vP.muted = isMuted;
     vP.ontimeupdate = updateProgressBar;
     vP.onplay = () => {
-        document.getElementById('play').textContent = '';
+        document.getElementById('play').textContent = '◼️';
         updateFullscreenControls();
     };
     vP.onpause = () => {
-        document.getElementById('play').textContent = '';
+        document.getElementById('play').textContent = '▶';
         updateFullscreenControls();
     };
     vP.onended = () => nextTrack();
@@ -732,10 +732,10 @@ function init() {
 document.getElementById('play').onclick = () => {
     if (vP.paused) {
         vP.play();
-        document.getElementById('play').textContent = '';
+        document.getElementById('play').textContent = '◼️';
     } else {
         vP.pause();
-        document.getElementById('play').textContent = '';
+        document.getElementById('play').textContent = '▶';
     }
     updateFullscreenControls();
 };
