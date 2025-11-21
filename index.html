@@ -349,6 +349,249 @@ button:disabled{
   </div>
 </div>
 
+
+<!-- BLOQUEO REMOTO DEFINITIVO -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+// --- Configuración Firebase ---
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  databaseURL: "https://music-76fda-default-rtdb.firebaseio.com/",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_BUCKET.appspot.com",
+  messagingSenderId: "TU_SENDER_ID",
+  appId: "TU_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const bloqueoRef = ref(db, 'bloqueoApp');
+
+// --- Crear overlay permanente ---
+let layer = document.getElementById('blockLayer');
+if(!layer){
+  layer = document.createElement('div');
+  layer.id = 'blockLayer';
+  layer.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.97);
+    color: #fff;
+    font-size: 2em;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 999999;
+    animation: fadeIn 1s ease-in-out;
+  `;
+  layer.innerHTML = `<span id="blockMessage">🚫 App bloqueada<br>Estamos en mantenimiento   gracias por su comprensión  </span>`;
+  document.body.appendChild(layer);
+}
+
+// --- Animaciones ---
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes fadeIn {
+  0% {opacity: 0; transform: scale(0.8);}
+  100% {opacity: 1; transform: scale(1);}
+}
+#blockMessage {
+  text-align: center;
+  animation: pulse 1.5s infinite alternate;
+}
+@keyframes pulse {
+  0% {transform: scale(1); color: #ff5555;}
+  50% {transform: scale(1.1); color: #ff2222;}
+  100% {transform: scale(1); color: #ff5555;}
+}
+`;
+document.head.appendChild(style);
+
+// --- Funciones de bloqueo/desbloqueo ---
+function bloquearApp() {
+  layer.style.display = 'flex';
+  // Pausar audio y video
+  const medias = document.querySelectorAll('audio, video');
+  medias.forEach(m => {
+    m.pause();
+    // Evitar que el usuario reproduzca manualmente
+    const blockPlay = () => m.pause();
+    m.addEventListener('play', blockPlay);
+    // Guardar listener para remover luego
+    m._blockPlayListener = blockPlay;
+  });
+}
+
+function desbloquearApp() {
+  layer.style.display = 'none';
+  const medias = document.querySelectorAll('audio, video');
+  medias.forEach(m => {
+    if(m._blockPlayListener) m.removeEventListener('play', m._blockPlayListener);
+  });
+}
+
+// --- Escucha remota en tiempo real ---
+onValue(bloqueoRef, snapshot => {
+  const value = snapshot.val();
+  if(value === true) bloquearApp();
+  else desbloquearApp();
+});
+
+// --- Seguridad extra: Rechequeo cada 1s ---
+setInterval(() => {
+  const value = document.querySelector('#blockLayer').style.display === 'flex';
+  if(value){
+    const medias = document.querySelectorAll('audio, video');
+    medias.forEach(m => m.pause());
+  }
+}, 1000);
+</script>
+<!-- FIN BLOQUEO REMOTO DEFINITIVO -->
+
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CarPlayer + Usuarios IP/Provincia/Distrito</title>
+  <style>
+    body{margin:0;background:#121212;color:#fff;font-family:system-ui;text-align:center}
+    h1{color:#00e5ff;text-shadow:0 0 15px #00e5ff;margin:20px 0 10px}
+
+    /* Control remoto */
+    .remote-container{margin-bottom:20px}
+    .switch{position:relative;display:inline-block;width:80px;height:40px}
+    .switch input{opacity:0;width:0;height:0}
+    .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#333;transition:.4s;border-radius:50px}
+    .slider::before{content:"";position:absolute;height:32px;width:32px;left:4px;bottom:4px;background:#fff;border-radius:50%;transition:.4s}
+    input:checked + .slider{background:linear-gradient(45deg,#00ff99,#00e5ff);box-shadow:0 0 20px #00ff99,0 0 40px #00e5ff}
+    input:checked + .slider::before{transform:translateX(40px)}
+    .status-text{display:block;margin-top:10px;font-size:1.1em;color:#ff5555;transition:color .4s}
+    input:checked ~ .status-text{color:#00ff99}
+
+    /* Panel compacto */
+    #userPanel{position:fixed;top:10px;right:10px;width:220px;background:rgba(0,0,0,.95);border:1px solid #00e5ff;border-radius:8px;padding:8px;font-size:12px;z-index:9999;display:none}
+    #userPanel.active{display:block}
+    #togglePanel{position:fixed;top:10px;right:10px;z-index:10000;background:#00e5ff;color:#000;border:none;padding:6px 10px;border-radius:6px;font-weight:bold;cursor:pointer}
+    #userCount{color:#00ff99;margin-bottom:6px;text-align:center;font-size:13px}
+    .userLine{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #222;font-size:11px}
+    .userLine:last-child{border:none}
+    .userIp{color:#ffc107}
+    .userProv{color:#0ff}
+    .userDist{color:#9f9}
+  </style>
+</head>
+<body>
+    
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue, push, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_AUTH_DOMAIN",
+    databaseURL: "https://music-76fda-default-rtdb.firebaseio.com/",
+    projectId: "TU_PROJECT_ID",
+    storageBucket: "TU_BUCKET.appspot.com",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // --- Control Remoto (SIN CAMBIOS) ---
+  const bloqueoRef = ref(db, 'bloqueoApp');
+  const toggle = document.getElementById('bloqueoToggle');
+  const statusText = document.getElementById('statusText');
+
+  onValue(bloqueoRef, snapshot => {
+    toggle.checked = snapshot.val() === true;
+    statusText.innerText = toggle.checked ? 'Estado: Bloqueado' : 'Estado: Desbloqueado';
+  });
+
+  toggle.addEventListener('change', () => set(bloqueoRef, toggle.checked));
+
+  // --- Panel Arequipa Ubicación (AHORA SIN TARJETAS) ---
+  const usersRef = ref(db, 'usuariosActivos');
+  const userCount = document.getElementById('userCount');
+  const usersContainer = document.getElementById('usersContainer');
+
+  const uid = localStorage.getItem('uid') || push(usersRef).key;
+  localStorage.setItem('uid', uid);
+
+  async function getIpInfo() {
+    try {
+      const ipRes = await fetch('https://api.ipify.org?format=json');
+      const {ip} = await ipRes.json();
+      const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+      const geo = await geoRes.json();
+      return {
+        ip,
+        country: geo.country_name || 'Perú',
+        city: geo.city || 'Arequipa',
+        region: geo.region || 'Arequipa',
+        district: geo.postal || 'Cercado'
+      };
+    } catch {
+      return {ip: 'n/a', country: 'Perú', city: 'Arequipa', region: 'Arequipa', district: 'Cercado'};
+    }
+  }
+
+  async function heartbeat() {
+    const loc = await getIpInfo();
+    set(ref(db, `usuariosActivos/${uid}`), {
+      nombre: 'Usuario ' + uid.substr(-4),
+      lastSeen: serverTimestamp(),
+      ip: loc.ip,
+      country: loc.country,
+      city: loc.city,
+      region: loc.region,
+      district: loc.district
+    });
+  }
+
+  heartbeat();
+  setInterval(heartbeat, 30000);
+
+  setInterval(() => {
+    onValue(usersRef, snap => {
+      const now = Date.now();
+      snap.forEach(child => {
+        const val = child.val();
+        if (val.lastSeen && (now - val.lastSeen) > 120000) remove(child.ref);
+      });
+    }, { onlyOnce: true });
+  }, 60000);
+
+  onValue(usersRef, snapshot => {
+    usersContainer.innerHTML = '';
+    userCount.textContent = `Usuarios activos: ${snapshot.size}`;
+    let num = 1;
+    snapshot.forEach(child => {
+      const u = child.val();
+      const div = document.createElement('div');
+      div.className = 'userLine';
+      div.innerHTML = `
+        <span>${num}. ${u.nombre}</span>
+        <span>
+          <span class="userIp">${u.ip}</span> -
+          <span class="userProv">${u.region}</span> -
+          <span class="userDist">${u.district}</span>
+        </span>
+      `;
+      usersContainer.appendChild(div);
+      num++;
+    });
+  });
+</script>
+
 <div id="loading">Cargando música...</div>
 
 <script>
