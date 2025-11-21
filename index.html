@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>CarPlayer - Tu Reproductor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+<style>
+/* TUS ESTILOS ORIGINALES COMPLETOS */
+@media (orientation: portrait){
+  body::before{
+    content:"GIRA EL MVIL";
+    position:fixed; inset:0; background:#000; color:#fff; z-index:9999;
+    display:flex; align-items:center; justify-content:center; font-size:10vw;
+  }
+}
+:root{
+  --accent:#000;
+  --bg:#000;
+  --btn:#222;
+  --text:#fff;
+  --panel-bg:#111;
+}
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:system-ui,Arial;
+  color:var(--text);
+}
+body{
+  background:var(--bg);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+#top{
+  flex:1;
+  display:flex;
+  gap:.5rem;
+  padding:.5rem;
+  min-height:0;
+}
+.panel{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  background:var(--panel-bg);
+  border-radius:1vh;
+  overflow:hidden;
+  min-height:0;
+  position:relative;
+}
+.panel h3{
+  display: none;
+}
+video{
+  width:100%;
+  flex:1;
+  background:#000;
+  outline:0;
+  min-height:0;
+  object-fit: cover;
+  transition: none !important;
+}
+#center{
+  background:#0005;
+  border-radius:90 h;
+  padding:1vh;
+  display:flex;
+  flex-direction:column;
+  gap:1vh;
+  min-width:36vh;
+  overflow-y:auto;
+  flex: 0 0 40%;
+  overflow-x: hidden;
+}
+.track{
+  display:flex;
+  align-items:center;
+  gap:1vh;
+  padding:1vh;
+  background:var(--btn);
+  border-radius:1vh;
+  cursor:pointer;
+  height:10vh;
+  flex-shrink:0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.track img{
+  height:100%;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  border-radius:1vh;
+  max-width: 20%;
+  flex-shrink: 0;
+}
+.track-info{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  gap:0.5vh;
+  min-width: 0;
+  overflow: hidden;
+}
+.track-title{
+  font-size:3.5vh;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width: 100%;
+}
+.track-genre{
+  font-size:2.5vh;
+  color:var(--accent);
+  opacity:0.8;
+}
+.track.active{
+  background:var(--accent);
+  color:#fff;
+  border: 3px solid #fff;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+.track.active .track-genre{
+  color:#fff;
+  opacity:1;
+  font-weight: bold;
+}
+.track.active .track-title{
+  font-weight: bold;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+#bottom{
+  display:flex;
+  align-items:center;
+  gap:1vh;
+  padding:1vh;
+  background:#0005;
+  flex-shrink:0;
+}
+button{
+  flex:1;
+  height:12vh;
+  border:none;
+  border-radius:1.5vh;
+  background:var(--btn);
+  color:var(--text);
+  font-weight:700;
+  font-size:5vh;
+  cursor:pointer;
+  transition: background 0.3s;
+}
+button:hover{
+  background:var(--accent);
+  color:var(--text);
+}
+button:disabled{
+  opacity:.3;
+}
+#play {
+  background:var(--btn);
+  color:var(--text);
+}
+#play:hover {
+  background:var(--accent);
+  color:var(--text);
+}
+#progress{
+  height:3vh;
+  background:#444;
+  border-radius:1.5vh;
+  cursor:pointer;
+  margin:0 1vh;
+  flex-shrink:0;
+}
+#bar{
+  height:100%;
+  background:var(--accent);
+  border-radius:1.5vh;
+  width:0%;
+}
+#safeDrive{
+  display:flex;
+  align-items:center;
+  gap:1vh;
+  padding:1vh;
+  font-size:3vh;
+  flex-shrink:0;
+}
+#safeDrive input{
+  width:4vh;
+  height:4vh;
+}
+#filters{
+  display:flex;
+  gap:1vh;
+  padding:1vh;
+  background:#0005;
+  flex-wrap:wrap;
+  flex-shrink:0;
+  max-height:15vh;
+  overflow-y:auto;
+  overflow-x: hidden;
+}
+.filter-btn{
+  background:var(--btn);
+  color:var(--text);
+  border:none;
+  padding:1vh 2vh;
+  border-radius:1vh;
+  cursor:pointer;
+  font-size:2.5vh;
+  transition:all 0.3s;
+  white-space:nowrap;
+}
+.filter-btn.active{
+  background:var(--accent);
+  color:var(--text);
+}
+.filter-btn:hover{
+  background:var(--accent);
+  color:var(--text);
+}
+.audio-only #center {
+  flex: 1;
+}
+.audio-only .panel:first-child {
+  display: none;
+}
+#fullscreen-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 10000;
+  flex-direction: column;
+}
+#fullscreen-container.active {
+  display: flex;
+}
+#fullscreen-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10001;
+  background: rgba(0,0,0,0.8);
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  opacity: 1;
+  transition: opacity 0s ease-in-out 0s;
+}
+#fullscreen-container.active #fullscreen-controls {
+  opacity: 1;
+  transition: opacity 0s ease-in-out 2s;
+}
+#fullscreen-container.active:hover #fullscreen-controls,
+#fullscreen-container.active #fullscreen-controls:hover {
+  opacity: 1;
+  transition: opacity 0s ease-in-out;
+}
+#fullscreen-controls button {
+  background: var(--accent);
+  color: var(--text);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 40px;
+}
+#fullscreen-controls button:hover {
+  background: #333;
+}
+#loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  color: var(--white);
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 10002;
+  display: none;
+}
+#center::-webkit-scrollbar {
+  width: 8px;
+}
+#center::-webkit-scrollbar-track {
+  background: #222;
+  border-radius: 4px;
+}
+#center::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+#center::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+</style>
+</head>
+<body>
+
+<div id="top">
+  <div class="panel">
+    <h3>VIDEO</h3>
+    <video id="vP" muted playsinline></video>
+  </div>
+  <div id="center"></div>
+</div>
+
+<div id="filters">
+  <button class="filter-btn active" data-genre="all">Todos</button>
+</div>
+
+<div id="progress"><div id="bar"></div></div>
+<div id="bottom">
+  <button id="prev"></button>
+  <button id="play"></button>
+  <button id="next"></button>
+  <button id="toggleMute"></button>
+  <button id="fullscreen"></button>
+</div>
+<div id="safeDrive">
+  <input type="checkbox" id="driving">
+  <label for="driving">Conduciendo (solo audio)</label>
+</div>
+
+<!-- SOLO CONTROLES - EL VIDEO SE MUEVE AQU EN FULLSCREEN -->
+<div id="fullscreen-container">
+  <div id="fullscreen-controls">
+    <button id="fs-prev"></button>
+    <button id="fs-play"></button>
+    <button id="fs-next"></button>
+    <button id="fs-mute"></button>
+    <button id="fs-exit">Salir</button>
+  </div>
+</div>
+
+<div id="loading">Cargando msica...</div>
+
+<script>
+// SISTEMA DE CACHE MEJORADO
+const DataCache = {
+    set: (key, data) => {
+        try {
+            localStorage.setItem('cache_' + key, JSON.stringify({
+                data: data,
+                timestamp: Date.now()
+            }));
+        } catch(e) {
+            console.log('Cache lleno, limpiando...');
+            localStorage.clear();
+        }
+    },
+    
+    get: (key, maxAge = 3600000) => { // 1 hora por defecto
+        const cached = localStorage.getItem('cache_' + key);
+        if(!cached) return null;
+        
+        const {data, timestamp} = JSON.parse(cached);
+        if(Date.now() - timestamp > maxAge) {
+            localStorage.removeItem('cache_' + key);
+            return null;
+        }
+        return data;
+    },
+    
+    clear: (key) => {
+        localStorage.removeItem('cache_' + key);
+    }
+};
+
+// VARIABLES GLOBALES
+const vP = document.getElementById('vP');
+const bar = document.getElementById('bar');
+const center = document.getElementById('center');
+const drivingChk = document.getElementById('driving');
+const fullscreenContainer = document.getElementById('fullscreen-container');
+const filtersContainer = document.getElementById('filters');
+const loadingIndicator = document.getElementById('loading');
+
+let PLAYLIST = [];
+let FILTERED_PLAYLIST = [];
+let idx = parseInt(localStorage.getItem('carIdx') || 0);
+let isMuted = localStorage.getItem('carMuted') === 'true';
+let isFullscreen = false;
+let currentGenre = 'all';
+let controlsTimeout;
+let isSwitching = false;
+
+// LISTA DE CANCIONES OPTIMIZADA
+const GENRE_FOLDERS = {
+  'Latinoamericana': [{ name: 'Latinoamericana', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Aya.c/refs/heads/main/jsskkkk.json' }],
+  '': [{ name: '', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Jp.n/refs/heads/main/jpn.json' }],
+  'Baladas': [{ name: 'Baladas de ayer y Hoy', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Bl./refs/heads/main/bsss.json' }],
+  'Folclore': [{ name: 'Ayllus', url: 'https://archive.org/download/xd_20251013/jssk.json' }],
+  'Pop': [{ name: 'Divas', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Dip.o.p/refs/heads/main/jsskk.json' }],
+  'Grupero': [{ name: 'Cumbias sureas', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Grp/refs/heads/main/jsskkk.json' }],
+  'Rock en Espaol': [{ name: 'Clsicos del Rock', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/rr/refs/heads/main/rc.json' }],
+  'Bachata': [{ name: 'Bachata', url: 'https://archive.org/download/vvvvvvvx/Bchvvc.json' }],
+  'tecno': [{ name: 'Electrnica Teckno ', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Tcno/refs/heads/main/TcElec.json' }],
+  'Salsa': [{ name: 'Clsica y de oro', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Ccc/refs/heads/main/Sssss.json' }],
+  'Boleros': [{ name: 'Cantineros', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Bo../refs/heads/main/Bol..json' }],
+  'Rock en Ingles': [{ name: '80s-90s', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Ringles/refs/heads/main/Ringles.json' }],
+  'cumbias': [{ name: 'Cumbias de ayer y hoy', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/q./refs/heads/main/q...json' }],
+  'Criolla': [{ name: 'Musica Criolla ', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Crll/refs/heads/main/C.lla.json' }],
+  'Disco': [{ name: 'Italo disco', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Dic..c/refs/heads/main/Idisco.json' }],
+  'huaynos': [{ name: 'huaynos', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Hyns/refs/heads/main/hyn.json' }],
+  'wwe': [{ name: 'Vintage (ingles)', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/w.3/refs/heads/main/w.w3.json' }],
+  'Reguetn': [{ name: 'Clasicos del Regueton', url: 'https://raw.githubusercontent.com/refinadorlegendary-rgb/Rgmp/refs/heads/main/rgtnnns.json' }]
+};
+
+// SOLUCIN: CARGA INSTANTNEA SIN PARPADEO
+function loadTrack(i, t = 0) {
+    if (isSwitching || i === idx) return;
+    
+    isSwitching = true;
+    const item = FILTERED_PLAYLIST[i];
+    if (!item || !item.video) {
+        isSwitching = false;
+        return;
+    }
+
+    idx = i;
+    
+    // GUARDAR ESTADO ACTUAL
+    const wasPlaying = !vP.paused;
+    const currentTime = vP.currentTime;
+    
+    // CAMBIO INSTANTNEO - SIN RECARGAR EL VIDEO
+    vP.src = item.video;
+    
+    // REPRODUCIR INMEDIATAMENTE
+    vP.currentTime = t;
+    
+    const playPromise = vP.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(e => {
+            console.log('Autoplay bloqueado, esperando interaccin');
+            isSwitching = false;
+        });
+    }
+    
+    // ACTUALIZAR UI INMEDIATAMENTE
+    renderList();
+    localStorage.setItem('carIdx', idx);
+    
+    // RESETEAR FLAG DESPUS DE PEQUEO RETRASO
+    setTimeout(() => {
+        isSwitching = false;
+    }, 100);
+}
+
+// FUNCIONES BSICAS OPTIMIZADAS
+function nextTrack() {
+    loadTrack((idx + 1) % FILTERED_PLAYLIST.length);
+}
+
+function prevTrack() {
+    loadTrack((idx - 1 + FILTERED_PLAYLIST.length) % FILTERED_PLAYLIST.length);
+}
+
+function filterByGenre(genre) {
+    currentGenre = genre;
+    FILTERED_PLAYLIST = genre === 'all' ? [...PLAYLIST] : PLAYLIST.filter(track => track.genre === genre);
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.genre === genre));
+    
+    if (idx >= FILTERED_PLAYLIST.length) idx = 0;
+    renderList();
+    if (FILTERED_PLAYLIST.length > 0) loadTrack(idx);
+}
+
+function renderList() {
+    center.innerHTML = '';
+    const countInfo = document.createElement('div');
+    countInfo.style.padding = '1vh';
+    countInfo.style.fontSize = '2.5vh';
+    countInfo.style.color = 'var(--accent)';
+    countInfo.textContent = `Mostrando ${FILTERED_PLAYLIST.length} canciones${currentGenre !== 'all' ? ` de ${currentGenre}` : ''}`;
+    center.appendChild(countInfo);
+    
+    FILTERED_PLAYLIST.forEach((tr, i) => {
+        const d = document.createElement('div');
+        d.className = 'track' + (i === idx ? ' active' : '');
+        d.innerHTML = `
+            <img src="${tr.thumb}" onerror="this.src='https://picsum.photos/320/180?random=${i}'">
+            <div class="track-info">
+                <div class="track-title">${tr.title}</div>
+                <div class="track-genre">${tr.genre}  ${tr.folder}</div>
+            </div>
+        `;
+        d.onclick = () => loadTrack(i);
+        center.appendChild(d);
+    });
+    
+    setTimeout(() => {
+        const activeTrack = center.querySelector('.track.active');
+        if (activeTrack) activeTrack.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+}
+
+function createGenreFilters() {
+    const allBtn = document.querySelector('.filter-btn[data-genre="all"]');
+    allBtn.onclick = () => filterByGenre('all');
+    const uniqueGenres = [...new Set(PLAYLIST.map(track => track.genre))];
+    uniqueGenres.forEach(genre => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.genre = genre;
+        btn.textContent = `${genre} (${PLAYLIST.filter(t => t.genre === genre).length})`;
+        btn.onclick = () => filterByGenre(genre);
+        filtersContainer.appendChild(btn);
+    });
+}
+
+// SISTEMA DE PANTALLA COMPLETA CON UN SOLO VIDEO
+function enterFullscreen() {
+    if (isFullscreen) return;
+    
+    const originalParent = vP.parentNode;
+    fullscreenContainer.appendChild(vP);
+    
+    vP.style.width = '100%';
+    vP.style.height = '100%';
+    vP.style.objectFit = 'contain';
+    
+    fullscreenContainer.classList.add('active');
+    
+    const elem = fullscreenContainer;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(e => console.log('Fullscreen no permitido'));
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+    }
+    
+    isFullscreen = true;
+    vP.play().catch(e => console.log('Video continuando en fullscreen'));
+    showControlsTemporarily();
+}
+
+function exitFullscreen() {
+    if (!isFullscreen) return;
+    
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+    }
+    
+    const originalPanel = document.querySelector('.panel');
+    if (originalPanel) {
+        const h3 = originalPanel.querySelector('h3');
+        originalPanel.innerHTML = '';
+        if (h3) originalPanel.appendChild(h3);
+        originalPanel.appendChild(vP);
+    }
+    
+    vP.style.width = '';
+    vP.style.height = '';
+    vP.style.objectFit = 'cover';
+    
+    fullscreenContainer.classList.remove('active');
+    isFullscreen = false;
+    
+    setTimeout(() => {
+        vP.play().catch(e => console.log('Video continuando en modo normal'));
+    }, 50);
+}
+
+// FUNCIONES AUXILIARES
+function toggleMute() {
+    isMuted = !isMuted;
+    vP.muted = isMuted;
+    localStorage.setItem('carMuted', isMuted);
+    updateMuteButton();
+}
+
+function updateMuteButton() {
+    const muteBtn = document.getElementById('toggleMute');
+    const fsMuteBtn = document.getElementById('fs-mute');
+    muteBtn.textContent = isMuted ? '' : '';
+    if (fsMuteBtn) fsMuteBtn.textContent = isMuted ? '' : '';
+}
+
+function updateFullscreenControls() {
+    const fsPlayBtn = document.getElementById('fs-play');
+    if (fsPlayBtn) fsPlayBtn.textContent = vP.paused ? '' : '';
+}
+
+function updateProgressBar() {
+    if (vP.duration && !isNaN(vP.duration)) {
+        bar.style.width = (100 * vP.currentTime / vP.duration) + '%';
+    }
+}
+
+function hideControlsAfterDelay() {
+    clearTimeout(controlsTimeout);
+    const controls = document.getElementById('fullscreen-controls');
+    if (controls && fullscreenContainer.classList.contains('active')) {
+        controlsTimeout = setTimeout(() => controls.style.opacity = '0', 2000);
+    }
+}
+
+function showControlsTemporarily() {
+    const controls = document.getElementById('fullscreen-controls');
+    if (controls) {
+        controls.style.opacity = '1';
+        hideControlsAfterDelay();
+    }
+}
+
+// DETECCIN DE CAMBIOS DE FULLSCREEN
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+function handleFullscreenChange() {
+    const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement
+    );
+    
+    if (isFullscreen && !isCurrentlyFullscreen) {
+        exitFullscreen();
+    }
+}
+
+// CARGA DE DATOS OPTIMIZADA
+async function parseJSON(content, genre, folderName) {
+    try {
+        const data = JSON.parse(content);
+        return data.map((item, index) => ({
+            title: item.nombre || item.name || item.title || item.titulo || (typeof item === 'string' ? item : `Cancin ${index + 1}`),
+            video: item.url || item.video || item.src || '',
+            thumb: item.thumb || item.thumbnail || item.image || `https://picsum.photos/320/180?random=${Math.random()}`,
+            genre,
+            folder: folderName
+        }));
+    } catch (error) {
+        console.error('Error parsing JSON:', error);
+        return [];
+    }
+}
+
+async function loadAllMusic() {
+    loadingIndicator.style.display = 'block';
+    
+    const cachedPlaylist = DataCache.get('full_playlist');
+    if(cachedPlaylist) {
+        PLAYLIST = cachedPlaylist;
+        loadingIndicator.style.display = 'none';
+        init();
+        return;
+    }
+    
+    PLAYLIST = [];
+    try {
+        const genrePromises = Object.entries(GENRE_FOLDERS).map(async ([genre, folders]) => {
+            for (const folder of folders) {
+                try {
+                    const cacheKey = `genre_${genre}_${folder.name}`;
+                    const cachedData = DataCache.get(cacheKey);
+                    
+                    if(cachedData) {
+                        PLAYLIST.push(...cachedData);
+                        continue;
+                    }
+                    
+                    const response = await fetch(folder.url);
+                    const jsonContent = await response.text();
+                    const songs = await parseJSON(jsonContent, genre, folder.name);
+                    const validSongs = songs.filter(song => song.video && song.video.startsWith('http'));
+                    
+                    if (validSongs.length > 0) {
+                        PLAYLIST.push(...validSongs);
+                        DataCache.set(cacheKey, validSongs);
+                    }
+                    
+                } catch (error) {
+                    console.error(`Error cargando ${folder.name}:`, error);
+                }
+            }
+        });
+        
+        await Promise.all(genrePromises);
+        DataCache.set('full_playlist', PLAYLIST);
+        
+    } finally {
+        loadingIndicator.style.display = 'none';
+        init();
+    }
+}
+
+// INICIALIZACIN
+function init() {
+    createGenreFilters();
+    filterByGenre('all');
+    
+    vP.muted = isMuted;
+    vP.ontimeupdate = updateProgressBar;
+    vP.onplay = () => {
+        document.getElementById('play').textContent = '';
+        updateFullscreenControls();
+    };
+    vP.onpause = () => {
+        document.getElementById('play').textContent = '';
+        updateFullscreenControls();
+    };
+    vP.onended = () => nextTrack();
+    
+    if (FILTERED_PLAYLIST.length > 0) loadTrack(idx);
+    updateMuteButton();
+}
+
+// ASIGNAR EVENTOS
+document.getElementById('play').onclick = () => {
+    if (vP.paused) {
+        vP.play();
+        document.getElementById('play').textContent = '';
+    } else {
+        vP.pause();
+        document.getElementById('play').textContent = '';
+    }
+    updateFullscreenControls();
+};
+
+document.getElementById('next').onclick = nextTrack;
+document.getElementById('prev').onclick = prevTrack;
+document.getElementById('toggleMute').onclick = toggleMute;
+document.getElementById('fullscreen').onclick = enterFullscreen;
+drivingChk.onchange = () => {
+    const drv = drivingChk.checked;
+    if (drv) {
+        document.body.classList.add('audio-only');
+    } else {
+        document.body.classList.remove('audio-only');
+    }
+};
+
+// Controles de pantalla completa
+document.getElementById('fs-prev').onclick = (e) => { prevTrack(); showControlsTemporarily(); e.stopPropagation(); };
+document.getElementById('fs-next').onclick = (e) => { nextTrack(); showControlsTemporarily(); e.stopPropagation(); };
+document.getElementById('fs-play').onclick = (e) => {
+    if (vP.paused) vP.play(); else vP.pause();
+    updateFullscreenControls();
+    showControlsTemporarily();
+    e.stopPropagation();
+};
+document.getElementById('fs-mute').onclick = (e) => { toggleMute(); showControlsTemporarily(); e.stopPropagation(); };
+document.getElementById('fs-exit').onclick = (e) => { exitFullscreen(); e.stopPropagation(); };
+
+fullscreenContainer.addEventListener('click', showControlsTemporarily);
+fullscreenContainer.addEventListener('mousemove', showControlsTemporarily);
+
+document.getElementById('progress').onclick = e => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - r.left) / r.width;
+    if (vP.duration && !isNaN(vP.duration)) vP.currentTime = pct * vP.duration;
+};
+
+setInterval(updateProgressBar, 500);
+
+// INICIAR CARGA
+loadAllMusic();
+</script>
+</body>
+</html>
